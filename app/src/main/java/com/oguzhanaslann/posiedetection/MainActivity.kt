@@ -17,5 +17,12 @@ class MainActivity : AppCompatActivity() {
             openActivity(PoseDetectImageActivity::class.java)
         }
 
+        binding.video.setOnClickListener {
+            openActivity(PoseDetectVideoActivity::class.java)
+        }
+
+        binding.camera.setOnClickListener {
+            openActivity(PoseDetectCameraActivity::class.java)
+        }
     }
 }
