@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PoseDetectImageActivity">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        tools:src="@tools:sample/avatars" />
+
+    <com.oguzhanaslann.posiedetection.ui.GraphicOverlay
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:visibility="invisible"
+        android:id="@+id/graphic_overlay" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
