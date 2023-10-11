@@ -1,19 +1,18 @@
 package com.oguzhanaslann.posiedetection
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
-import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseDetection
+import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
 import com.oguzhanaslann.posiedetection.databinding.ActivityPoseDetectImageBinding
 import com.oguzhanaslann.posiedetection.ui.PoseGraphic
+import com.oguzhanaslann.posiedetection.util.getInputImageFrom
 import com.oguzhanaslann.posiedetection.util.loadImageWithMinSize
-import java.nio.ByteBuffer
 
 class PoseDetectImageActivity : AppCompatActivity() {
 
@@ -27,12 +26,14 @@ class PoseDetectImageActivity : AppCompatActivity() {
 
     private val imageId get() = R.drawable.ic_image_person_jump
 
+    private lateinit var poseDetector: PoseDetector
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPoseDetectImageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val poseDetector = PoseDetection.getClient(poseOptions)
+        poseDetector = PoseDetection.getClient(poseOptions)
         binding.imageView.loadImageWithMinSize(imageId) {
             val bitmap = it.toBitmap()
             val inputImage = getInputImageFrom(bitmap)
@@ -41,29 +42,6 @@ class PoseDetectImageActivity : AppCompatActivity() {
                 .addOnSuccessListener { onPoseDetectionSucceeded(it, bitmap) }
                 .addOnFailureListener(::onPoseDetectionFailed)
         }
-    }
-
-    private fun getInputImageFrom(bitmap: Bitmap): InputImage {
-        val zeroRotationDegrees = 0
-        return InputImage.fromBitmap(bitmap, zeroRotationDegrees)
-    }
-
-    private fun getInputImageFrom(uri: Uri): InputImage {
-        return InputImage.fromFilePath(this, uri)
-    }
-
-    private fun getInputImageFrom(
-        byteBuffer: ByteBuffer,
-        bitmap: Bitmap,
-        rotationDegrees: Int
-    ): InputImage {
-        return InputImage.fromByteBuffer(
-            byteBuffer,
-            bitmap.width,
-            bitmap.height,
-            rotationDegrees,
-            InputImage.IMAGE_FORMAT_NV21 // or IMAGE_FORMAT_YV12
-        )
     }
 
     private fun onPoseDetectionSucceeded(pose: Pose?, bitmap: Bitmap) {
@@ -91,6 +69,11 @@ class PoseDetectImageActivity : AppCompatActivity() {
 
     private fun onPoseDetectionFailed(e: Exception) {
         Log.e(TAG, "onPoseDetectionFailed: $e")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        poseDetector.close()
     }
 
     companion object {
