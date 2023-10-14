@@ -54,17 +54,7 @@ class PoseDetectImageActivity : AppCompatActivity() {
         }
 
         binding.graphicOverlay.setImageSourceInfo(bitmap.width, bitmap.height, false)
-
-        binding.graphicOverlay.add(
-            PoseGraphic(
-                overlay = binding.graphicOverlay,
-                pose = pose,
-                showInFrameLikelihood = false,
-                visualizeZ = false,
-                rescaleZForVisualization = false,
-                poseClassification = listOf()
-            )
-        )
+        binding.graphicOverlay.add(PoseGraphic(binding.graphicOverlay, pose))
     }
 
     private fun onPoseDetectionFailed(e: Exception) {

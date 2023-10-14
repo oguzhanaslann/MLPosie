@@ -26,13 +26,12 @@ internal constructor(
 ) : GraphicOverlay.Graphic(overlay) {
   private var zMin = java.lang.Float.MAX_VALUE
   private var zMax = java.lang.Float.MIN_VALUE
-  private val classificationTextPaint: Paint
+  private val classificationTextPaint: Paint = Paint()
   private val leftPaint: Paint
   private val rightPaint: Paint
   private val whitePaint: Paint
 
   init {
-    classificationTextPaint = Paint()
     classificationTextPaint.color = Color.WHITE
     classificationTextPaint.textSize = POSE_CLASSIFICATION_TEXT_SIZE
     classificationTextPaint.setShadowLayer(5.0f, 0f, 0f, Color.BLACK)
@@ -48,6 +47,18 @@ internal constructor(
     rightPaint.strokeWidth = STROKE_WIDTH
     rightPaint.color = Color.YELLOW
   }
+
+  constructor(
+    overlay: GraphicOverlay,
+    pose: Pose,
+  ) : this(
+    overlay = overlay,
+    pose = pose,
+    showInFrameLikelihood = false,
+    visualizeZ = false,
+    rescaleZForVisualization = false,
+    poseClassification = emptyList()
+  )
 
   override fun draw(canvas: Canvas) {
     val landmarks = pose.allPoseLandmarks

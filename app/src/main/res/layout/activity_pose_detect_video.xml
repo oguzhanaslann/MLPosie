@@ -3,9 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".PoseDetectVideoActivity">
 
     <androidx.media3.ui.PlayerView
+        android:id="@+id/player_view"
+        app:resize_mode="fill"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
