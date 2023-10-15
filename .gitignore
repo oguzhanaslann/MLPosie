@@ -101,3 +101,11 @@ projectdoc.txt
 
 # scan temporary files
 **/fastlane/test_output
+
+*.mp4
+*.mp3
+*.jpg
+*.png
+*.jpeg
+*.gif
+

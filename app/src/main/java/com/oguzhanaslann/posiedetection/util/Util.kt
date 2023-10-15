@@ -27,7 +27,8 @@ fun ImageView.loadImageWithMinSize(imageUrl: String) {
         .centerCrop() // Crop the image if needed to fit the dimensions
 
     Glide.with(this.context) // Use the context of the ImageView
-        .load(imageUrl).apply(requestOptions)
+        .load(imageUrl)
+        .apply(requestOptions)
         .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
         .into(this)
 }
@@ -37,7 +38,8 @@ fun ImageView.loadImageWithMinSize(@DrawableRes drawableId: Int, onLoad: (Drawab
         RequestOptions().centerCrop() // Crop the image if needed to fit the dimensions
 
     Glide.with(this.context) // Use the context of the ImageView
-        .load(drawableId).apply(requestOptions)
+        .load(drawableId)
+        .apply(requestOptions)
         .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
         .listener(object : RequestListener<Drawable> {
             override fun onLoadFailed(
@@ -59,12 +61,15 @@ fun ImageView.loadImageWithMinSize(@DrawableRes drawableId: Int, onLoad: (Drawab
                 onLoad(resource)
                 return false
             }
-        }).into(this)
+        })
+        .into(this)
 }
 
-fun getInputImageFrom(bitmap: Bitmap): InputImage {
-    val zeroRotationDegrees = 0
-    return InputImage.fromBitmap(bitmap, zeroRotationDegrees)
+fun getInputImageFrom(
+    bitmap: Bitmap,
+    rotationDegrees: Int = 0
+): InputImage {
+    return InputImage.fromBitmap(bitmap, rotationDegrees)
 }
 
 fun getInputImageFrom(context: Context, uri: Uri): InputImage {

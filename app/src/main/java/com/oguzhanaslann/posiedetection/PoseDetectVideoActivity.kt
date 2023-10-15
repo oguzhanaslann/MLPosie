@@ -22,6 +22,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @UnstableApi
 class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
@@ -38,7 +40,7 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
 
     private val poseOptions by lazy {
         AccuratePoseDetectorOptions.Builder()
-            .setDetectorMode(AccuratePoseDetectorOptions.CPU)
+            .setDetectorMode(AccuratePoseDetectorOptions.CPU_GPU)
             .build()
     }
 
@@ -63,6 +65,10 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
 
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
+
+        binding.clearButton.setOnClickListener {
+            binding.graphicOverlayVideo.clear()
+        }
     }
 
     private fun getRawResourceUriString(@RawRes rawResourceId: Int): String {
@@ -80,7 +86,7 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
             job = lifecycleScope.launch {
                 while (isActive) {
                     processFrame()
-                    delay(ONE_MILLIS)
+                    delay(50)
                 }
             }
         }
@@ -92,20 +98,22 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun processFrame() {
-        val currentFramePosition = exoPlayer.currentPosition
-        val bitmap = retriever.getFrameAtTime(currentFramePosition * ONE_MILLIS)
-            ?: return // scale bitmap to fit the screen
+        val bitmap = getCurrentPositionFrame() ?: return // scale bitmap to fit the screen
         val scaledBitmap = Bitmap.createScaledBitmap(
-            bitmap,
-            binding.root.width,
-            binding.root.height,
-            false
+            bitmap, binding.playerView.width, binding.playerView.height, false
         )
-
         val inputImage = getInputImageFrom(scaledBitmap)
         poseDetector.process(inputImage)
             .addOnSuccessListener { onPoseDetectionSucceeded(it, scaledBitmap) }
             .addOnFailureListener(::onPoseDetectionFailed)
+    }
+
+    private fun getCurrentPositionFrame(): Bitmap? {
+        val currentPosMillis = exoPlayer.currentPosition.toDuration(DurationUnit.MILLISECONDS)
+        Log.d(TAG, "getCurrentPositionFrame: currentPosMillis : $currentPosMillis")
+        val currentPosMicroSec = currentPosMillis.inWholeMicroseconds
+        Log.d(TAG, "getCurrentPositionFrame: currentPosMicroSec : $currentPosMicroSec")
+        return retriever.getFrameAtTime(currentPosMicroSec, MediaMetadataRetriever.OPTION_CLOSEST)
     }
 
     private fun onPoseDetectionSucceeded(pose: Pose?, bitmap: Bitmap) {
@@ -116,11 +124,8 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
             return
         }
 
-        binding.graphicOverlayVideo.setImageSourceInfo(
-            bitmap.width,
-            bitmap.height,
-            false
-        )
+        binding.graphicOverlayVideo.setImageSourceInfo(bitmap.width, bitmap.height, false)
+        binding.graphicOverlayVideo.clear()
         binding.graphicOverlayVideo.add(PoseGraphic(binding.graphicOverlayVideo, pose))
     }
 
@@ -137,7 +142,8 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
 
     override fun onResume() {
         super.onResume()
-        if (!exoPlayer.isPlaying) { //            exoPlayer.play()
+        if (!exoPlayer.isPlaying) {
+            exoPlayer.play()
         }
     }
 
