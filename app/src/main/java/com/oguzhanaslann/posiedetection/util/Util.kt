@@ -87,3 +87,10 @@ fun getInputImageFrom(
         InputImage.IMAGE_FORMAT_NV21 // or IMAGE_FORMAT_YV12
     )
 }
+
+fun Context.toast(
+    message: String,
+    duration: Int = android.widget.Toast.LENGTH_SHORT
+) {
+    android.widget.Toast.makeText(this, message, duration).show()
+}

@@ -46,19 +46,28 @@ dependencies {
     implementation "androidx.core:core-ktx:1.12.0"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.2"
 
+    /* GLIDE */
     implementation 'com.github.bumptech.glide:glide:4.16.0'
 
-
+    /* EXOPLAYER */
     def media3_version = "1.1.1"
     implementation "androidx.media3:media3-exoplayer:$media3_version"
     implementation "androidx.media3:media3-exoplayer-dash:$media3_version"
     implementation "androidx.media3:media3-ui:$media3_version"
     implementation "androidx.media3:media3-session:$media3_version"
 
-    // If you want to use the base sdk
+    /* ML KIT */
     implementation 'com.google.mlkit:pose-detection:18.0.0-beta3'
-    // If you want to use the accurate sdk
     implementation 'com.google.mlkit:pose-detection-accurate:18.0.0-beta3'
+
+    /* CAMERAX */
+    def camerax_version = "1.2.3"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    implementation "androidx.camera:camera-video:${camerax_version}"
+    implementation "androidx.camera:camera-view:${camerax_version}"
+    implementation "androidx.camera:camera-extensions:${camerax_version}"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

@@ -6,4 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".PoseDetectCameraActivity">
 
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.oguzhanaslann.posiedetection.ui.GraphicOverlay
+        android:id="@+id/graphic_overlay_camera"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="invisible" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
