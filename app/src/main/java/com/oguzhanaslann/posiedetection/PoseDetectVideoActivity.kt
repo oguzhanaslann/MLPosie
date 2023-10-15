@@ -11,6 +11,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseDetector
@@ -44,16 +45,27 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
             .build()
     }
 
-    private lateinit var poseDetector: PoseDetector
+    private val poseDetector: PoseDetector by lazy {
+        PoseDetection.getClient(poseOptions)
+    }
+
+    private var job: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPoseDetectVideoBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        poseDetector = PoseDetection.getClient(poseOptions)
+        setPlayer()
+        loadAndPrepareVideo()
+        initClearButton()
+    }
+
+    private fun setPlayer() {
         binding.playerView.player = exoPlayer
         exoPlayer.addListener(this)
+    }
 
+    private fun loadAndPrepareVideo() {
         val video = getRawResourceUriString(R.raw.video_samp)
         val mediaItem = MediaItem.fromUri(video)
         val assetFileDescriptor = resources.openRawResourceFd(R.raw.video_samp)
@@ -65,7 +77,9 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
 
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
+    }
 
+    private fun initClearButton() {
         binding.clearButton.setOnClickListener {
             binding.graphicOverlayVideo.clear()
         }
@@ -76,12 +90,14 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
         return "android.resource://$packageName/raw/" + resources.getResourceEntryName(rawResourceId)
     }
 
-    private var job: Job? = null
-
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         super.onIsPlayingChanged(isPlaying)
         Log.d(TAG, "onIsPlayingChanged: isPlaying : $isPlaying")
+        startProcessJobIfNeeded(isPlaying)
+        cancelProcessJobIfNeeded(isPlaying)
+    }
 
+    private fun startProcessJobIfNeeded(isPlaying: Boolean) {
         if (job == null && isPlaying) {
             job = lifecycleScope.launch {
                 while (isActive) {
@@ -90,7 +106,9 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
                 }
             }
         }
+    }
 
+    private fun cancelProcessJobIfNeeded(isPlaying: Boolean) {
         if (!isPlaying && job != null) {
             job?.cancel()
             job = null
@@ -98,22 +116,19 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun processFrame() {
-        val bitmap = getCurrentPositionFrame() ?: return // scale bitmap to fit the screen
-        val scaledBitmap = Bitmap.createScaledBitmap(
-            bitmap, binding.playerView.width, binding.playerView.height, false
-        )
-        val inputImage = getInputImageFrom(scaledBitmap)
+        val frame = getCurrentFrame() ?: return
+        val inputImage = getInputImageFrom(frame)
         poseDetector.process(inputImage)
-            .addOnSuccessListener { onPoseDetectionSucceeded(it, scaledBitmap) }
+            .addOnSuccessListener { onPoseDetectionSucceeded(it, frame) }
             .addOnFailureListener(::onPoseDetectionFailed)
     }
 
-    private fun getCurrentPositionFrame(): Bitmap? {
+    private fun getCurrentFrame(): Bitmap? {
         val currentPosMillis = exoPlayer.currentPosition.toDuration(DurationUnit.MILLISECONDS)
-        Log.d(TAG, "getCurrentPositionFrame: currentPosMillis : $currentPosMillis")
         val currentPosMicroSec = currentPosMillis.inWholeMicroseconds
-        Log.d(TAG, "getCurrentPositionFrame: currentPosMicroSec : $currentPosMicroSec")
-        return retriever.getFrameAtTime(currentPosMicroSec, MediaMetadataRetriever.OPTION_CLOSEST)
+        val currentFrame =  retriever.getFrameAtTime(currentPosMicroSec, MediaMetadataRetriever.OPTION_CLOSEST)
+        val bitmap =currentFrame?: return null
+        return Bitmap.createScaledBitmap(bitmap, binding.playerView.width, binding.playerView.height, false)
     }
 
     private fun onPoseDetectionSucceeded(pose: Pose?, bitmap: Bitmap) {
@@ -154,6 +169,5 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
 
     companion object {
         private const val TAG = "PoseDetectVideoActivity"
-        private const val ONE_MILLIS = 1000L
     }
 }
