@@ -94,3 +94,9 @@ fun Context.toast(
 ) {
     android.widget.Toast.makeText(this, message, duration).show()
 }
+
+fun extractNumericValue(input: String): Int? {
+    val regex = Regex("\\d+")
+    val matchResult = regex.find(input)
+    return matchResult?.value?.toInt()
+}

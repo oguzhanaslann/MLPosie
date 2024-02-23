@@ -18,11 +18,15 @@ import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
 import com.oguzhanaslann.posiedetection.databinding.ActivityPoseDetectVideoBinding
 import com.oguzhanaslann.posiedetection.ui.PoseGraphic
+import com.oguzhanaslann.posiedetection.util.classification.PoseClassifierProcessor
+import com.oguzhanaslann.posiedetection.util.extractNumericValue
 import com.oguzhanaslann.posiedetection.util.getInputImageFrom
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -50,6 +54,10 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
     }
 
     private var job: Job? = null
+
+    private val poseClassifierProcessor: PoseClassifierProcessor by lazy {
+        PoseClassifierProcessor(this@PoseDetectVideoActivity ,true)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -142,6 +150,19 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
         binding.graphicOverlayVideo.setImageSourceInfo(bitmap.width, bitmap.height, false)
         binding.graphicOverlayVideo.clear()
         binding.graphicOverlayVideo.add(PoseGraphic(binding.graphicOverlayVideo, pose))
+
+        lifecycleScope.launch(Dispatchers.Default) {
+            val repsResult = poseClassifierProcessor.getPoseResult(pose)
+                ?.first()
+                .orEmpty()
+
+            extractNumericValue(repsResult)?.let {
+                withContext(Dispatchers.Main) {
+                    Log.e("TAG", "onPoseDetectionSucceeded: $it")
+//                    binding.squads.text = "Squads: $it"
+                }
+            }
+        }
     }
 
     private fun onPoseDetectionFailed(e: Exception) {

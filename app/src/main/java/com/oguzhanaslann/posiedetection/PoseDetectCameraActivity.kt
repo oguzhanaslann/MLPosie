@@ -12,6 +12,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.pose.Pose
@@ -20,7 +21,13 @@ import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
 import com.oguzhanaslann.posiedetection.databinding.ActivityPoseDetectCameraBinding
 import com.oguzhanaslann.posiedetection.ui.PoseGraphic
+import com.oguzhanaslann.posiedetection.util.classification.PoseClassifierProcessor
+import com.oguzhanaslann.posiedetection.util.extractNumericValue
 import com.oguzhanaslann.posiedetection.util.toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 
 class PoseDetectCameraActivity : AppCompatActivity() {
@@ -43,6 +50,10 @@ class PoseDetectCameraActivity : AppCompatActivity() {
     }
 
     private val cameraSelector get() = CameraSelector.DEFAULT_BACK_CAMERA
+
+    private val poseClassifierProcessor: PoseClassifierProcessor by  lazy {
+        PoseClassifierProcessor(this@PoseDetectCameraActivity ,true)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,6 +112,8 @@ class PoseDetectCameraActivity : AppCompatActivity() {
         imageAnalyzer.setAnalyzer(cameraExecutor) { imageProxy ->
             val bitmap = imageProxy.toBitmap()
             val inputData = InputImage.fromBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
+            //val image = InputImage.fromMediaImage(imageProxy.image!!, imageProxy.imageInfo.rotationDegrees)
+            // java.lang.IllegalArgumentException: Only JPEG and YUV_420_888 are supported now
 
             poseDetector.process(inputData)
                 .addOnSuccessListener { onPoseDetectionSucceeded(it, bitmap) }
@@ -124,10 +137,36 @@ class PoseDetectCameraActivity : AppCompatActivity() {
             binding.graphicOverlayCamera.clear()
             return
         }
-
+        //squats_down, squats_up;
+        //pushups_down, pushups_up;
         binding.graphicOverlayCamera.setImageSourceInfo(bitmap.width, bitmap.height, false)
         binding.graphicOverlayCamera.clear()
         binding.graphicOverlayCamera.add(PoseGraphic(binding.graphicOverlayCamera, pose))
+
+        lifecycleScope.launch(Dispatchers.Default) {
+            val repsResult = poseClassifierProcessor.getPoseResult(pose)
+                .also {
+                    Log.d("TAG", "onPoseDetectionSucceeded: $it")
+                }
+                ?.first()
+                .orEmpty()
+
+            if (repsResult.contains("squats")) {
+                extractNumericValue(repsResult)?.let {
+                    withContext(Dispatchers.Main) {
+                        binding.squads.text = "Squads: $it"
+                    }
+                }
+            } else if (repsResult.contains("pushups")) {
+                extractNumericValue(repsResult)?.let {
+                    withContext(Dispatchers.Main) {
+                        binding.pushUps.text = "Pushups: $it"
+                    }
+                }
+            }
+
+
+        }
     }
 
     private fun onPoseDetectionFailed(e: Exception) {
