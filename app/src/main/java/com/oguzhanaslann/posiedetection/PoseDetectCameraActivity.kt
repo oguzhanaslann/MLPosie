@@ -137,35 +137,15 @@ class PoseDetectCameraActivity : AppCompatActivity() {
             binding.graphicOverlayCamera.clear()
             return
         }
-        //squats_down, squats_up;
-        //pushups_down, pushups_up;
         binding.graphicOverlayCamera.setImageSourceInfo(bitmap.width, bitmap.height, false)
         binding.graphicOverlayCamera.clear()
         binding.graphicOverlayCamera.add(PoseGraphic(binding.graphicOverlayCamera, pose))
 
         lifecycleScope.launch(Dispatchers.Default) {
-            val repsResult = poseClassifierProcessor.getPoseResult(pose)
-                .also {
-                    Log.d("TAG", "onPoseDetectionSucceeded: $it")
-                }
-                ?.first()
-                .orEmpty()
-
-            if (repsResult.contains("squats")) {
-                extractNumericValue(repsResult)?.let {
-                    withContext(Dispatchers.Main) {
-                        binding.squads.text = "Squads: $it"
-                    }
-                }
-            } else if (repsResult.contains("pushups")) {
-                extractNumericValue(repsResult)?.let {
-                    withContext(Dispatchers.Main) {
-                        binding.pushUps.text = "Pushups: $it"
-                    }
-                }
+            val exerciseResult = poseClassifierProcessor.getExerciseResult(pose)
+            withContext(Dispatchers.Main) {
+                setExerciseStatistics(exerciseResult, binding.pushUps, binding.squads)
             }
-
-
         }
     }
 

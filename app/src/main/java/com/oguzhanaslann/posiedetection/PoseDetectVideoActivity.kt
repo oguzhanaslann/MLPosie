@@ -4,10 +4,10 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import androidx.annotation.RawRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -153,25 +153,9 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
         binding.graphicOverlayVideo.add(PoseGraphic(binding.graphicOverlayVideo, pose))
 
         lifecycleScope.launch(Dispatchers.Default) {
-            val repsResult = poseClassifierProcessor.getPoseResult(pose)
-                .also {
-                    Log.d("TAG", "onPoseDetectionSucceeded: $it")
-                }
-                ?.first()
-                .orEmpty()
-
-            if (repsResult.contains("squats")) {
-                extractNumericValue(repsResult)?.let {
-                    withContext(Dispatchers.Main) {
-                        binding.squads.text = "Squads: $it"
-                    }
-                }
-            } else if (repsResult.contains("pushups")) {
-                extractNumericValue(repsResult)?.let {
-                    withContext(Dispatchers.Main) {
-                        binding.pushUps.text = "Pushups: $it"
-                    }
-                }
+            val exerciseResult = poseClassifierProcessor.getExerciseResult(pose)
+            withContext(Dispatchers.Main) {
+                setExerciseStatistics(exerciseResult, binding.pushUps, binding.squads)
             }
         }
     }
