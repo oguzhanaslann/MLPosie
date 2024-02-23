@@ -7,11 +7,11 @@ import android.util.Log
 import androidx.annotation.RawRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseDetector
@@ -71,12 +71,13 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
     private fun setPlayer() {
         binding.playerView.player = exoPlayer
         exoPlayer.addListener(this)
+        exoPlayer.setPlaybackSpeed(0.25f)
     }
 
     private fun loadAndPrepareVideo() {
-        val video = getRawResourceUriString(R.raw.video_samp)
+        val video = getRawResourceUriString(R.raw.vieo_push_up)
         val mediaItem = MediaItem.fromUri(video)
-        val assetFileDescriptor = resources.openRawResourceFd(R.raw.video_samp)
+        val assetFileDescriptor = resources.openRawResourceFd(R.raw.vieo_push_up)
         retriever.setDataSource(
             assetFileDescriptor.fileDescriptor,
             assetFileDescriptor.startOffset,
@@ -153,13 +154,23 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
 
         lifecycleScope.launch(Dispatchers.Default) {
             val repsResult = poseClassifierProcessor.getPoseResult(pose)
+                .also {
+                    Log.d("TAG", "onPoseDetectionSucceeded: $it")
+                }
                 ?.first()
                 .orEmpty()
 
-            extractNumericValue(repsResult)?.let {
-                withContext(Dispatchers.Main) {
-                    Log.e("TAG", "onPoseDetectionSucceeded: $it")
-//                    binding.squads.text = "Squads: $it"
+            if (repsResult.contains("squats")) {
+                extractNumericValue(repsResult)?.let {
+                    withContext(Dispatchers.Main) {
+                        binding.squads.text = "Squads: $it"
+                    }
+                }
+            } else if (repsResult.contains("pushups")) {
+                extractNumericValue(repsResult)?.let {
+                    withContext(Dispatchers.Main) {
+                        binding.pushUps.text = "Pushups: $it"
+                    }
                 }
             }
         }
