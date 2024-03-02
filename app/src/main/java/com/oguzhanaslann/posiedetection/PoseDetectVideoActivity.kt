@@ -75,8 +75,6 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun loadAndPrepareVideo() {
-        val video = getRawResourceUriString(R.raw.vieo_push_up)
-        val mediaItem = MediaItem.fromUri(video)
         val assetFileDescriptor = resources.openRawResourceFd(R.raw.vieo_push_up)
         retriever.setDataSource(
             assetFileDescriptor.fileDescriptor,
@@ -84,6 +82,8 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
             assetFileDescriptor.length
         )
 
+        val video = getRawResourceUriString(R.raw.vieo_push_up)
+        val mediaItem = MediaItem.fromUri(video)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
     }
@@ -136,7 +136,7 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
         val currentPosMillis = exoPlayer.currentPosition.toDuration(DurationUnit.MILLISECONDS)
         val currentPosMicroSec = currentPosMillis.inWholeMicroseconds
         val currentFrame =  retriever.getFrameAtTime(currentPosMicroSec, MediaMetadataRetriever.OPTION_CLOSEST)
-        val bitmap =currentFrame?: return null
+        val bitmap = currentFrame?: return null
         return Bitmap.createScaledBitmap(bitmap, binding.playerView.width, binding.playerView.height, false)
     }
 
@@ -163,6 +163,8 @@ class PoseDetectVideoActivity : AppCompatActivity(), Player.Listener {
     private fun onPoseDetectionFailed(e: Exception) {
         Log.e(TAG, "onPoseDetectionFailed: $e")
     }
+
+
 
     override fun onPause() {
         super.onPause()

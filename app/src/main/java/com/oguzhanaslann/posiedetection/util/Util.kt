@@ -22,7 +22,7 @@ fun Context.openActivity(openThis: Class<out AppCompatActivity>) {
     startActivity(Intent(this, openThis))
 }
 
-fun ImageView.loadImageWithMinSize(imageUrl: String) {
+fun ImageView.load(imageUrl: String) {
     val requestOptions = RequestOptions().override(480, 360) // Set the minimum width and height
         .centerCrop() // Crop the image if needed to fit the dimensions
 
@@ -33,7 +33,7 @@ fun ImageView.loadImageWithMinSize(imageUrl: String) {
         .into(this)
 }
 
-fun ImageView.loadImageWithMinSize(@DrawableRes drawableId: Int, onLoad: (Drawable) -> Unit = {}) {
+fun ImageView.load(@DrawableRes drawableId: Int, onLoad: (Drawable) -> Unit = {}) {
     val requestOptions =
         RequestOptions().centerCrop() // Crop the image if needed to fit the dimensions
 

@@ -2,25 +2,17 @@ package com.oguzhanaslann.posiedetection
 
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.lifecycleScope
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
 import com.oguzhanaslann.posiedetection.databinding.ActivityPoseDetectImageBinding
 import com.oguzhanaslann.posiedetection.ui.PoseGraphic
-import com.oguzhanaslann.posiedetection.util.classification.PoseClassifierProcessor
 import com.oguzhanaslann.posiedetection.util.getInputImageFrom
-import com.oguzhanaslann.posiedetection.util.loadImageWithMinSize
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.oguzhanaslann.posiedetection.util.load
 
 class PoseDetectImageActivity : AppCompatActivity() {
 
@@ -42,7 +34,7 @@ class PoseDetectImageActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         poseDetector = PoseDetection.getClient(poseOptions)
-        binding.imageView.loadImageWithMinSize(imageId) {
+        binding.imageView.load(imageId) {
             val bitmap = it.toBitmap()
             val inputImage = getInputImageFrom(bitmap)
             Log.d(TAG, "onCreate: image process started")
@@ -73,6 +65,7 @@ class PoseDetectImageActivity : AppCompatActivity() {
         super.onDestroy()
         poseDetector.close()
     }
+
 
     companion object {
         private const val TAG = "PoseDetectImageActivity"
