@@ -84,7 +84,8 @@ class PoseDetectCameraActivity : AppCompatActivity() {
 
     @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
     private fun cameraListener(
-        cameraProviderFuture: ListenableFuture<ProcessCameraProvider>, cameraExecutor: Executor
+        cameraProviderFuture: ListenableFuture<ProcessCameraProvider>,
+        cameraExecutor: Executor
     ): Runnable = Runnable {
         val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
         val preview = getPreview()
@@ -112,9 +113,6 @@ class PoseDetectCameraActivity : AppCompatActivity() {
         imageAnalyzer.setAnalyzer(cameraExecutor) { imageProxy ->
             val bitmap = imageProxy.toBitmap()
             val inputData = InputImage.fromBitmap(bitmap, imageProxy.imageInfo.rotationDegrees)
-            //val image = InputImage.fromMediaImage(imageProxy.image!!, imageProxy.imageInfo.rotationDegrees)
-            // java.lang.IllegalArgumentException: Only JPEG and YUV_420_888 are supported now
-
             poseDetector.process(inputData)
                 .addOnSuccessListener { onPoseDetectionSucceeded(it, bitmap) }
                 .addOnFailureListener(::onPoseDetectionFailed)
